@@ -36,10 +36,10 @@ export default async function HomePage() {
           </div>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-warm-text leading-tight mb-4">
             Mike & Irene&apos;s<br />
-            <span className="text-warm-accent">Great Adventure</span>
+            <span className="text-warm-accent">Travel Blog</span>
           </h1>
           <p className="text-warm-muted text-lg leading-relaxed max-w-md mx-auto">
-            Follow along as Mike and Irene explore the world — a private journal for friends and family.
+            Follow along as Mike and Irene on their travels a private journal for friends and family.
           </p>
         </div>
 
@@ -47,7 +47,7 @@ export default async function HomePage() {
         {postsWithCount.length === 0 ? (
           <div className="text-center py-16 text-warm-muted">
             <p className="font-serif text-xl mb-2">No posts yet</p>
-            <p className="text-sm">Check back soon — the adventure is about to begin!</p>
+            <p className="text-sm">Check back soon!</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -59,7 +59,7 @@ export default async function HomePage() {
       </main>
 
       <footer className="border-t border-warm-border text-center py-6 text-sm text-warm-muted">
-        Made with love for Mike & Irene ♥
+        Made with love for Mum & Dad
       </footer>
     </>
   )

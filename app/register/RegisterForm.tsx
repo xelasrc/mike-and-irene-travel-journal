@@ -74,7 +74,7 @@ export default function RegisterForm() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-warm-accent mb-4">
             <MapPin className="w-5 h-5" />
-            <span className="font-serif text-xl font-semibold">Mike & Irene&apos;s Adventure</span>
+            <span className="font-serif text-xl font-semibold">Mike & Irene&apos;s Travel Blog</span>
           </Link>
           <h1 className="font-serif text-2xl font-bold text-warm-text">Join the journey</h1>
           <p className="text-warm-muted text-sm mt-1">Create an account to leave comments</p>

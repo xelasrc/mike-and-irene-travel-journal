@@ -16,8 +16,8 @@ const lato = Lato({
 })
 
 export const metadata: Metadata = {
-  title: "Mike & Irene's Great Adventure",
-  description: 'Follow Mike and Irene on their travels — a private family journal.',
+  title: "Mike & Irene's Travel Blog",
+  description: 'Follow Mike and Irene on their travels.',
   robots: { index: false, follow: false },
 }
 

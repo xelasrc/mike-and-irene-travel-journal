@@ -1,4 +1,4 @@
-# Mike & Irene's Great Adventure
+# Mike & Irene's Travel Blog
 
 A private family travel blog for Mike and Irene's 1.5-month holiday. Friends and family can read posts and leave threaded comments. Built with Next.js 15, Supabase, and Tailwind CSS, deployed on Vercel.
 

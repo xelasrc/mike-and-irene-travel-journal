@@ -66,10 +66,10 @@ export default function Navbar() {
         >
           <MapPin className="w-4 h-4" />
           <span className="font-serif font-semibold text-lg leading-none hidden sm:block">
-            Mike & Irene&apos;s Adventure
+            Mike & Irene&apos;s Travel Blog
           </span>
           <span className="font-serif font-semibold text-lg leading-none sm:hidden">
-            M&I Adventures
+            M&I Travel Blog
           </span>
         </Link>
 
