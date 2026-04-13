@@ -12,7 +12,6 @@ export default function RegisterForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,7 +35,6 @@ export default function RegisterForm() {
       password,
       options: {
         data: { display_name: displayName.trim() },
-        emailRedirectTo: `${location.origin}/api/auth/callback`,
       },
     })
 
@@ -46,31 +44,14 @@ export default function RegisterForm() {
       return
     }
 
-    setSuccess(true)
-  }
-
-  if (success) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4 bg-warm-bg">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-4xl mb-4">✉️</div>
-          <h1 className="font-serif text-2xl font-bold text-warm-text mb-2">Check your email</h1>
-          <p className="text-warm-muted leading-relaxed">
-            We&apos;ve sent a confirmation link to <strong>{email}</strong>.
-            Click it to activate your account, then you can sign in and start commenting!
-          </p>
-          <Link href="/login" className="inline-block mt-6 text-warm-accent font-medium hover:underline">
-            Back to sign in
-          </Link>
-        </div>
-      </main>
-    )
+    // Email confirmation is disabled — log them straight in
+    router.push('/')
+    router.refresh()
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-warm-bg">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-warm-accent mb-4">
             <MapPin className="w-5 h-5" />
