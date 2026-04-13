@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { MapPin, BookOpen, LogIn } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import NavbarUserMenu from './NavbarUserMenu'
 
 export default async function Navbar() {
@@ -12,8 +11,7 @@ export default async function Navbar() {
   let isAdmin = false
 
   if (user) {
-    const adminClient = createAdminClient()
-    const { data: profile } = await adminClient
+    const { data: profile } = await supabase
       .from('profiles')
       .select('display_name, role')
       .eq('id', user.id)
