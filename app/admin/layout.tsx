@@ -23,8 +23,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
     return <>{children}</>
   } catch (err: unknown) {
-    // redirect() throws internally — rethrow those, catch real errors
-    if (err instanceof Error && err.message === 'NEXT_REDIRECT') throw err
+    // Next.js uses thrown errors internally for redirects and dynamic rendering signals — always rethrow those
+    const digest = (err as { digest?: string })?.digest
+    if (typeof digest === 'string') throw err
     console.error('[AdminLayout] unexpected error:', err)
     redirect('/')
   }

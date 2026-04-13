@@ -3,6 +3,8 @@ import { ArrowLeft } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import PostEditor from '@/components/PostEditor'
 
+export const dynamic = 'force-dynamic'
+
 export default function NewPostPage() {
   return (
     <>

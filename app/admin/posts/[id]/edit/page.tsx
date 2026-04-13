@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/Navbar'
 import PostEditor from '@/components/PostEditor'
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
