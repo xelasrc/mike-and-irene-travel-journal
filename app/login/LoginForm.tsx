@@ -1,37 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { MapPin, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import { MapPin } from 'lucide-react'
+import { signInAction } from '@/app/actions/auth'
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') ?? '/'
   const urlError = searchParams.get('error')
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-    const supabase = createClient()
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError('Incorrect email or password. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    // Full reload so the server picks up the new session cookies reliably
-    window.location.href = redirectTo
-  }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-warm-bg">
@@ -46,21 +23,23 @@ export default function LoginForm() {
         </div>
 
         <div className="bg-white rounded-2xl border border-warm-border p-6 shadow-sm">
-          {(error || urlError) && (
+          {urlError && (
             <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
-              {error ?? urlError}
+              {decodeURIComponent(urlError)}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={signInAction} className="space-y-4">
+            {/* Pass redirect target through the form */}
+            <input type="hidden" name="redirectTo" value={redirectTo} />
+
             <div>
               <label className="block text-sm font-medium text-warm-text mb-1.5">
                 Email address
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                name="email"
                 required
                 autoComplete="email"
                 className="w-full rounded-xl border border-warm-border bg-warm-bg px-4 py-2.5 text-warm-text placeholder-warm-muted focus:outline-none focus:ring-2 focus:ring-warm-accent/30 focus:border-warm-accent transition"
@@ -74,8 +53,7 @@ export default function LoginForm() {
               </label>
               <input
                 type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
+                name="password"
                 required
                 autoComplete="current-password"
                 className="w-full rounded-xl border border-warm-border bg-warm-bg px-4 py-2.5 text-warm-text placeholder-warm-muted focus:outline-none focus:ring-2 focus:ring-warm-accent/30 focus:border-warm-accent transition"
@@ -85,10 +63,8 @@ export default function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-warm-accent text-white rounded-full py-2.5 font-medium hover:bg-warm-accent-dark transition-colors disabled:opacity-60"
+              className="w-full flex items-center justify-center bg-warm-accent text-white rounded-full py-2.5 font-medium hover:bg-warm-accent-dark transition-colors"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Sign in
             </button>
           </form>
