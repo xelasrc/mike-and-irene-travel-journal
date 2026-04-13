@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { signOutAction } from '@/app/actions/auth'
 import { MapPin, BookOpen, LogIn, LogOut } from 'lucide-react'
 import type { Profile } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -78,9 +79,7 @@ export default function Navbar() {
 
   async function handleLogout() {
     setMenuOpen(false)
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await signOutAction()
   }
 
   const isAdmin = profile?.role === 'admin'

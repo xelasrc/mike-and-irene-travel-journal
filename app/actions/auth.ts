@@ -17,3 +17,9 @@ export async function signInAction(formData: FormData) {
 
   redirect(redirectTo)
 }
+
+export async function signOutAction() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect('/')
+}
