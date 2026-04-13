@@ -30,17 +30,10 @@ export default async function HomePage() {
       <main className="max-w-2xl mx-auto px-4 pb-20">
         {/* Hero */}
         <div className="text-center py-14 sm:py-20">
-          <div className="inline-flex items-center gap-1.5 text-warm-accent text-sm font-medium mb-4 bg-warm-highlight px-3 py-1 rounded-full border border-warm-border">
-            <MapPin className="w-3.5 h-3.5" />
-            Live travel journal
-          </div>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-warm-text leading-tight mb-4">
             Mike & Irene&apos;s<br />
             <span className="text-warm-accent">Travel Blog</span>
           </h1>
-          <p className="text-warm-muted text-lg leading-relaxed max-w-md mx-auto">
-            Follow along Mike and Irene on their travels - a private journal for friends and family.
-          </p>
         </div>
 
         {/* Post feed */}

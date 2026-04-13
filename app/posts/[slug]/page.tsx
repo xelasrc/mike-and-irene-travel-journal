@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { MapPin, Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -68,8 +67,6 @@ export default async function PostPage({ params }: PageProps) {
   const sortedImages = (post.post_images ?? []).sort(
     (a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order
   )
-  const coverImage = sortedImages[0]?.image_url ?? post.cover_image_url
-  const galleryImages = sortedImages.slice(coverImage ? 0 : 0)
 
   const paragraphs = post.content.split('\n').filter((p: string) => p.trim())
 
@@ -89,20 +86,6 @@ export default async function PostPage({ params }: PageProps) {
         </div>
 
         <article>
-          {/* Cover image */}
-          {coverImage && (
-            <div className="relative h-72 sm:h-96 rounded-2xl overflow-hidden mb-8">
-              <Image
-                src={coverImage}
-                alt={post.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 672px"
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-
           {/* Meta */}
           <div className="flex flex-wrap items-center gap-3 text-sm text-warm-muted mb-3">
             <span className="flex items-center gap-1">
