@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { MapPin, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -11,7 +11,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') ?? '/'
   const urlError = searchParams.get('error')
@@ -30,8 +29,8 @@ export default function LoginForm() {
       return
     }
 
-    router.push(redirectTo)
-    router.refresh()
+    // Full reload so the server picks up the new session cookies reliably
+    window.location.href = redirectTo
   }
 
   return (

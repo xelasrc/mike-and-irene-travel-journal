@@ -1,6 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Per Next.js 16 docs, proxy should NOT do data fetching or full auth checks.
+// It only refreshes the Supabase session (cookie rotation) so server components
+// always see a valid session. Admin role checks live in the admin layout.
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -23,25 +26,8 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // Refresh session
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Protect /admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login?redirect=/admin', request.url))
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-  }
+  // Only purpose: refresh the session token so it doesn't expire mid-visit
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }
