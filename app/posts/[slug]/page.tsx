@@ -7,7 +7,7 @@ import PhotoGallery from '@/components/PhotoGallery'
 import CommentThread from '@/components/CommentThread'
 import { formatDate } from '@/lib/utils'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -32,37 +32,41 @@ export default async function PostPage({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createClient()
 
-  const { data: post } = await supabase
-    .from('posts')
-    .select(`
-      *,
-      profiles!author_id ( display_name ),
-      post_images ( id, image_url, caption, display_order )
-    `)
-    .eq('slug', slug)
-    .eq('published', true)
-    .single()
+  // Round trip 1 & 2 in parallel: fetch the post + auth session simultaneously
+  const [{ data: post }, { data: { user } }] = await Promise.all([
+    supabase
+      .from('posts')
+      .select(`
+        *,
+        profiles!author_id ( display_name ),
+        post_images ( id, image_url, caption, display_order )
+      `)
+      .eq('slug', slug)
+      .eq('published', true)
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!post) notFound()
 
-  const { data: comments } = await supabase
-    .from('comments')
-    .select(`
-      id, post_id, author_id, parent_id, content, created_at,
-      profiles!author_id ( display_name, role )
-    `)
-    .eq('post_id', post.id)
-    .order('created_at', { ascending: true })
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const { data: currentProfile } = user
-    ? await supabase
-        .from('profiles')
-        .select('id, display_name, role')
-        .eq('id', user.id)
-        .single()
-    : { data: null }
+  // Round trip 3 & 4 in parallel: comments + current user's profile simultaneously
+  const [{ data: comments }, { data: currentProfile }] = await Promise.all([
+    supabase
+      .from('comments')
+      .select(`
+        id, post_id, author_id, parent_id, content, created_at,
+        profiles!author_id ( display_name, role )
+      `)
+      .eq('post_id', post.id)
+      .order('created_at', { ascending: true }),
+    user
+      ? supabase
+          .from('profiles')
+          .select('id, display_name, role')
+          .eq('id', user.id)
+          .single()
+      : Promise.resolve({ data: null }),
+  ])
 
   const sortedImages = (post.post_images ?? []).sort(
     (a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order

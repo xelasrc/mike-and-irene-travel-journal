@@ -1,110 +1,57 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { PostImage } from '@/lib/types'
 
 export default function PhotoGallery({ images }: { images: PostImage[] }) {
-  const [current, setCurrent] = useState(0)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const touchStartX = useRef<number | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const sorted = [...images].sort((a, b) => a.display_order - b.display_order)
 
   if (sorted.length === 0) return null
 
-  function prev() { setCurrent(i => (i - 1 + sorted.length) % sorted.length) }
-  function next() { setCurrent(i => (i + 1) % sorted.length) }
-
-  function onTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current === null) return
-    const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 40) diff > 0 ? next() : prev()
-    touchStartX.current = null
-  }
+  function prev() { setLightboxIndex(i => i === null ? null : (i - 1 + sorted.length) % sorted.length) }
+  function next() { setLightboxIndex(i => i === null ? null : (i + 1) % sorted.length) }
 
   return (
     <>
-      {/* Carousel */}
-      <div className="relative select-none">
-        <div
-          className="relative aspect-square sm:aspect-4/3 overflow-hidden sm:rounded-xl bg-warm-bg-2 cursor-pointer"
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-          onClick={() => setLightboxOpen(true)}
-        >
-          <Image
-            src={sorted[current].image_url}
-            alt={sorted[current].caption ?? `Photo ${current + 1}`}
-            fill
-            sizes="(max-width: 640px) 100vw, 672px"
-            className="object-cover"
-            priority={current === 0}
-          />
-
-          {/* Counter pill */}
-          {sorted.length > 1 && (
-            <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full">
-              {current + 1} / {sorted.length}
-            </div>
-          )}
-
-          {/* Desktop arrows */}
-          {sorted.length > 1 && (
-            <>
-              <button
-                onClick={e => { e.stopPropagation(); prev() }}
-                className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 text-white items-center justify-center hover:bg-black/60 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); next() }}
-                className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 text-white items-center justify-center hover:bg-black/60 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          {/* Caption overlay */}
-          {sorted[current].caption && (
-            <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent px-4 py-3">
-              <p className="text-white text-sm leading-snug">{sorted[current].caption}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Dots */}
-        {sorted.length > 1 && (
-          <div className="flex justify-center gap-1.5 mt-3">
-            {sorted.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-1.5 rounded-full transition-all duration-200 ${
-                  i === current ? 'w-5 bg-warm-accent' : 'w-1.5 bg-warm-border'
-                }`}
+      {/* Stacked photos at natural aspect ratio */}
+      <div className="flex flex-col gap-1">
+        {sorted.map((img, i) => (
+          <div key={img.id}>
+            <button
+              onClick={() => setLightboxIndex(i)}
+              className="w-full block cursor-zoom-in"
+            >
+              {/* width=0 height=0 + sizes + style is the Next.js way to get natural aspect ratio */}
+              <Image
+                src={img.image_url}
+                alt={img.caption ?? `Photo ${i + 1}`}
+                width={0}
+                height={0}
+                sizes="(max-width: 640px) 100vw, 672px"
+                style={{ width: '100%', height: 'auto' }}
               />
-            ))}
+            </button>
+            {img.caption && (
+              <p className="text-xs text-warm-muted text-center px-4 py-2 italic">
+                {img.caption}
+              </p>
+            )}
           </div>
-        )}
+        ))}
       </div>
 
       {/* Lightbox */}
-      {lightboxOpen && (
+      {lightboxIndex !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-          onClick={() => setLightboxOpen(false)}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
+          onClick={() => setLightboxIndex(null)}
         >
           <button
-            onClick={() => setLightboxOpen(false)}
+            onClick={() => setLightboxIndex(null)}
             className="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-10"
           >
             <X className="w-6 h-6" />
@@ -131,20 +78,21 @@ export default function PhotoGallery({ images }: { images: PostImage[] }) {
             className="relative w-full h-full flex items-center justify-center px-14"
             onClick={e => e.stopPropagation()}
           >
-            <div className="relative w-full h-full">
-              <Image
-                src={sorted[current].image_url}
-                alt={sorted[current].caption ?? `Photo ${current + 1}`}
-                fill
-                sizes="100vw"
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Image
+              src={sorted[lightboxIndex].image_url}
+              alt={sorted[lightboxIndex].caption ?? `Photo ${lightboxIndex + 1}`}
+              width={0}
+              height={0}
+              sizes="100vw"
+              style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '90vh' }}
+            />
           </div>
 
           <div className="absolute bottom-6 left-0 right-0 text-center text-white/50 text-sm">
-            {current + 1} / {sorted.length}
+            {lightboxIndex + 1} / {sorted.length}
+            {sorted[lightboxIndex].caption && (
+              <p className="text-white/70 mt-1">{sorted[lightboxIndex].caption}</p>
+            )}
           </div>
         </div>
       )}
