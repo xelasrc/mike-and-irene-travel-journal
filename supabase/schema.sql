@@ -134,6 +134,24 @@ create policy "post_images_storage_delete" on storage.objects
   for delete using (bucket_id = 'post-images' and public.is_admin());
 
 
+-- ── Role grants ──────────────────────────────────────────────
+-- Without these, the anon/authenticated roles can't access the public schema at all,
+-- even if RLS policies exist. RLS still controls which rows are visible/editable.
+grant usage on schema public to anon, authenticated;
+
+grant select on public.profiles    to anon, authenticated;
+grant select on public.posts       to anon, authenticated;
+grant select on public.post_images to anon, authenticated;
+grant select on public.comments    to anon, authenticated;
+
+grant insert, update on public.profiles    to authenticated;
+grant insert, update, delete on public.posts       to authenticated;
+grant insert, delete on public.post_images to authenticated;
+grant insert, delete on public.comments    to authenticated;
+
+grant usage on all sequences in schema public to authenticated;
+
+
 -- ── Make yourself admin ───────────────────────────────────────
 -- After registering with your email, run this query to make yourself admin:
 --
