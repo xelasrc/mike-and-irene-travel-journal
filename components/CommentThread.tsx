@@ -33,13 +33,12 @@ export default function CommentThread({
   }
 
   return (
-    <section id="comments" className="mt-10 pt-8 border-t border-[#e8d5be]">
-      <h2 className="font-serif text-2xl font-semibold text-[#2d1b0e] mb-6 flex items-center gap-2">
-        <MessageCircle className="w-5 h-5 text-[#c2621a]" />
+    <section id="comments" className="mt-10 pt-8 border-t border-warm-border">
+      <h2 className="font-serif text-2xl font-semibold text-warm-text mb-6 flex items-center gap-2">
+        <MessageCircle className="w-5 h-5 text-warm-accent" />
         {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
       </h2>
 
-      {/* Top-level comment form */}
       {currentUser ? (
         <div className="mb-8">
           <CommentForm
@@ -50,19 +49,18 @@ export default function CommentThread({
           />
         </div>
       ) : (
-        <div className="mb-8 rounded-xl border border-[#e8d5be] bg-[#faf3e8] p-4 text-center">
-          <p className="text-[#8b6e5a] text-sm">
-            <a href="/login" className="text-[#c2621a] font-medium hover:underline">Sign in</a>
+        <div className="mb-8 rounded-xl border border-warm-border bg-warm-bg-2 p-4 text-center">
+          <p className="text-warm-muted text-sm">
+            <a href="/login" className="text-warm-accent font-medium hover:underline">Sign in</a>
             {' '}or{' '}
-            <a href="/register" className="text-[#c2621a] font-medium hover:underline">create an account</a>
+            <a href="/register" className="text-warm-accent font-medium hover:underline">create an account</a>
             {' '}to leave a comment.
           </p>
         </div>
       )}
 
-      {/* Comment list */}
       {tree.length === 0 ? (
-        <p className="text-[#8b6e5a] text-sm text-center py-6">
+        <p className="text-warm-muted text-sm text-center py-6">
           No comments yet — be the first to say something!
         </p>
       ) : (
@@ -106,8 +104,7 @@ function CommentNode({
   depth,
 }: CommentNodeProps) {
   const [isPending, startTransition] = useTransition()
-  const maxVisualDepth = 3
-  const visualDepth = Math.min(depth, maxVisualDepth)
+  const visualDepth = Math.min(depth, 3)
   const isOwn = currentUser?.id === comment.author_id
   const isAdmin = currentUser?.role === 'admin'
 
@@ -119,38 +116,36 @@ function CommentNode({
   }
 
   return (
-    <div className={visualDepth > 0 ? 'ml-5 sm:ml-8 border-l-2 border-[#e8d5be] pl-4 sm:pl-5' : ''}>
-      <div className="py-4 border-b border-[#e8d5be]/60">
-        {/* Avatar + name + date */}
+    <div className={visualDepth > 0 ? 'ml-5 sm:ml-8 border-l-2 border-warm-border pl-4 sm:pl-5' : ''}>
+      <div className="py-4 border-b border-warm-border/60">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#c2621a]/15 text-[#c2621a] flex items-center justify-center font-semibold text-sm shrink-0">
+          <div className="w-8 h-8 rounded-full bg-warm-accent/15 text-warm-accent flex items-center justify-center font-semibold text-sm shrink-0">
             {(comment.profiles?.display_name ?? 'A').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="font-semibold text-sm text-[#2d1b0e]">
+              <span className="font-semibold text-sm text-warm-text">
                 {comment.profiles?.display_name ?? 'Anonymous'}
               </span>
               {comment.profiles?.role === 'admin' && (
-                <span className="text-xs bg-[#c2621a] text-white px-1.5 py-0.5 rounded-full leading-none">
+                <span className="text-xs bg-warm-accent text-white px-1.5 py-0.5 rounded-full leading-none">
                   Mike & Irene
                 </span>
               )}
-              <span className="text-xs text-[#8b6e5a]">
+              <span className="text-xs text-warm-muted">
                 {formatRelativeDate(comment.created_at)}
               </span>
             </div>
 
-            <p className="text-sm text-[#3d2010] leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-warm-text leading-relaxed whitespace-pre-wrap">
               {comment.content}
             </p>
 
-            {/* Actions */}
             <div className="flex items-center gap-3 mt-2">
               {currentUser && (
                 <button
                   onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                  className="flex items-center gap-1 text-xs text-[#8b6e5a] hover:text-[#c2621a] transition-colors"
+                  className="flex items-center gap-1 text-xs text-warm-muted hover:text-warm-accent transition-colors py-1"
                 >
                   <Reply className="w-3.5 h-3.5" />
                   Reply
@@ -160,7 +155,7 @@ function CommentNode({
                 <button
                   onClick={handleDelete}
                   disabled={isPending}
-                  className="flex items-center gap-1 text-xs text-[#8b6e5a] hover:text-red-500 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1 text-xs text-warm-muted hover:text-red-500 transition-colors disabled:opacity-50 py-1"
                 >
                   {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                   Delete
@@ -171,7 +166,6 @@ function CommentNode({
         </div>
       </div>
 
-      {/* Inline reply form */}
       {replyingTo === comment.id && currentUser && (
         <div className="py-3 ml-11">
           <CommentForm
@@ -187,7 +181,6 @@ function CommentNode({
         </div>
       )}
 
-      {/* Nested replies */}
       {comment.replies.length > 0 && (
         <div>
           {comment.replies.map(reply => (
@@ -237,7 +230,6 @@ function CommentForm({
     startTransition(async () => {
       try {
         await createComment({ postId, postSlug, content, parentId })
-        // Optimistic: create a local comment object
         const optimistic: Comment = {
           id: `optimistic-${Date.now()}`,
           post_id: postId,
@@ -263,7 +255,7 @@ function CommentForm({
         placeholder={parentId ? `Replying as ${currentUser.display_name}…` : `Add a comment as ${currentUser.display_name}…`}
         autoFocus={autoFocus}
         rows={compact ? 2 : 3}
-        className="w-full rounded-xl border border-[#e8d5be] bg-[#fdf8f0] px-4 py-3 text-sm text-[#2d1b0e] placeholder-[#8b6e5a] focus:outline-none focus:ring-2 focus:ring-[#c2621a]/30 focus:border-[#c2621a] resize-none transition"
+        className="w-full rounded-xl border border-warm-border bg-warm-bg px-4 py-3 text-sm text-warm-text placeholder-warm-muted focus:outline-none focus:ring-2 focus:ring-warm-accent/30 focus:border-warm-accent resize-none transition"
       />
       {error && <p className="text-red-500 text-xs">{error}</p>}
       <div className="flex items-center gap-2 justify-end">
@@ -271,7 +263,7 @@ function CommentForm({
           <button
             type="button"
             onClick={onCancel}
-            className="text-sm text-[#8b6e5a] hover:text-[#2d1b0e] transition-colors"
+            className="text-sm text-warm-muted hover:text-warm-text transition-colors px-2 py-1"
           >
             Cancel
           </button>
@@ -279,7 +271,7 @@ function CommentForm({
         <button
           type="submit"
           disabled={isPending || !content.trim()}
-          className="flex items-center gap-1.5 bg-[#c2621a] text-white text-sm px-4 py-2 rounded-full hover:bg-[#9a4e15] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 bg-warm-accent text-white text-sm px-4 py-2 rounded-full hover:bg-warm-accent-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           {parentId ? 'Reply' : 'Comment'}

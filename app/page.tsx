@@ -27,13 +27,20 @@ export default async function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 pb-20">
+      <main className="max-w-2xl mx-auto px-4 pb-16">
         {/* Hero */}
-        <div className="text-center py-14 sm:py-20">
-          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-warm-text leading-tight mb-4">
+        <div className="text-center py-10 sm:py-16">
+          <div className="inline-flex items-center gap-1.5 text-warm-accent text-xs font-medium mb-3 bg-warm-highlight px-3 py-1 rounded-full border border-warm-border">
+            <MapPin className="w-3 h-3" />
+            Live travel journal
+          </div>
+          <h1 className="font-serif text-3xl sm:text-5xl font-bold text-warm-text leading-tight mb-3">
             Mike & Irene&apos;s<br />
             <span className="text-warm-accent">Travel Blog</span>
           </h1>
+          <p className="text-warm-muted text-sm sm:text-base max-w-xs sm:max-w-md mx-auto leading-relaxed">
+            A private journal for friends and family — follow along on the adventure.
+          </p>
         </div>
 
         {/* Post feed */}
@@ -43,7 +50,7 @@ export default async function HomePage() {
             <p className="text-sm">Check back soon!</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {postsWithCount.map(post => (
               <PostCard key={post.id} post={post as any} />
             ))}

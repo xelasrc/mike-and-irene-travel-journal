@@ -115,12 +115,9 @@ export default async function PostPage({ params }: PageProps) {
             ))}
           </div>
 
-          {/* Photo gallery (all images) */}
+          {/* Photo gallery — edge-to-edge on mobile, rounded on desktop */}
           {sortedImages.length > 0 && (
-            <div className="mb-10">
-              <h2 className="font-serif text-xl font-semibold text-warm-text mb-4">
-                Photos from the day
-              </h2>
+            <div className="mb-10 -mx-4 sm:mx-0">
               <PhotoGallery images={sortedImages} />
             </div>
           )}
