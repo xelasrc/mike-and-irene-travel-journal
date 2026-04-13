@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { PlusCircle, Edit, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { PlusCircle, Edit, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/Navbar'
 import { formatDate } from '@/lib/utils'
-import { deletePost, togglePublished } from '@/app/actions/posts'
+import { togglePublished } from '@/app/actions/posts'
+import DeletePostButton from '@/components/DeletePostButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -105,23 +106,7 @@ export default async function AdminDashboard() {
                         </button>
                       </form>
 
-                      <form action={async () => {
-                        'use server'
-                        await deletePost(post.id)
-                      }}>
-                        <button
-                          type="submit"
-                          title="Delete"
-                          className="p-1.5 text-warm-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          onClick={(e) => {
-                            if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) {
-                              e.preventDefault()
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </form>
+                      <DeletePostButton postId={post.id} title={post.title} />
                     </div>
                   </div>
                 </div>
