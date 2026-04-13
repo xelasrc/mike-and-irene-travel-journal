@@ -2,19 +2,30 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login?redirect=/admin')
+    if (!user) redirect('/login?redirect=/admin')
 
-  // profiles has a public SELECT policy so the regular client can read it
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-  if (profile?.role !== 'admin') redirect('/')
+    if (error) {
+      console.error('[AdminLayout] profile query error:', error.message)
+      redirect('/')
+    }
 
-  return <>{children}</>
+    if (profile?.role !== 'admin') redirect('/')
+
+    return <>{children}</>
+  } catch (err: unknown) {
+    // redirect() throws internally — rethrow those, catch real errors
+    if (err instanceof Error && err.message === 'NEXT_REDIRECT') throw err
+    console.error('[AdminLayout] unexpected error:', err)
+    redirect('/')
+  }
 }
