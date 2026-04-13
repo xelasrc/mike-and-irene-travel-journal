@@ -39,7 +39,7 @@ export default async function HomePage() {
             <span className="text-warm-accent">Travel Blog</span>
           </h1>
           <p className="text-warm-muted text-lg leading-relaxed max-w-md mx-auto">
-            Follow along as Mike and Irene on their travels a private journal for friends and family.
+            Follow along Mike and Irene on their travels - a private journal for friends and family.
           </p>
         </div>
 
