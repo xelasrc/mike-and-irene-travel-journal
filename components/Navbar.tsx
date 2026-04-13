@@ -34,12 +34,13 @@ export default function Navbar() {
         return
       }
 
-      // Profile missing (trigger may have failed) — create one now
+      // Profile missing (trigger may have failed) — insert one now
+      // Use INSERT (not upsert) so we never overwrite an existing role
       const displayName = user.user_metadata?.display_name
         ?? user.email?.split('@')[0]
         ?? 'User'
 
-      await supabase.from('profiles').upsert({
+      await supabase.from('profiles').insert({
         id: user.id,
         display_name: displayName,
         role: 'viewer',
@@ -50,7 +51,7 @@ export default function Navbar() {
 
     loadUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
 
       if (!session?.user) {
