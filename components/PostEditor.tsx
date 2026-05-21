@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ImagePlus, X, Loader2, Globe, EyeOff, GripVertical } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createPost, updatePost } from '@/app/actions/posts'
+import { compressImage } from '@/lib/compressImage'
 import type { Post, PostImage } from '@/lib/types'
 
 interface PostEditorProps {
@@ -31,6 +32,7 @@ export default function PostEditor({ post }: PostEditorProps) {
       : []
   )
   const [submitting, setSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
@@ -51,18 +53,25 @@ export default function PostEditor({ post }: PostEditorProps) {
   }
 
   async function uploadPendingImages(): Promise<string[]> {
+    const pending = images.filter(e => e.file)
     const urls: string[] = []
+    let i = 0
+
     for (const entry of images) {
       if (!entry.file) {
-        // Already uploaded
         urls.push(entry.url)
         continue
       }
-      const ext = entry.file.name.split('.').pop()
-      const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+      i++
+      setSubmitStatus(`Compressing photo ${i} of ${pending.length}…`)
+      const compressed = await compressImage(entry.file)
+
+      setSubmitStatus(`Uploading photo ${i} of ${pending.length}…`)
+      const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
       const { error } = await supabase.storage
         .from('post-images')
-        .upload(path, entry.file, { upsert: false })
+        .upload(path, compressed, { contentType: 'image/jpeg', upsert: false })
 
       if (error) throw new Error(`Failed to upload image: ${error.message}`)
 
@@ -72,6 +81,8 @@ export default function PostEditor({ post }: PostEditorProps) {
 
       urls.push(publicUrl)
     }
+
+    setSubmitStatus('Saving post…')
     return urls
   }
 
@@ -81,6 +92,7 @@ export default function PostEditor({ post }: PostEditorProps) {
     if (!content.trim()) { setError('Content is required.'); return }
 
     setSubmitting(true)
+    setSubmitStatus('Starting…')
     setError(null)
 
     try {
@@ -222,7 +234,7 @@ export default function PostEditor({ post }: PostEditorProps) {
           type="button"
           onClick={e => { setPublished(false); handleSubmit(e, false) }}
           disabled={submitting}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-[#e8d5be] text-[#8b6e5a] hover:bg-[#faf3e8] transition-colors disabled:opacity-50 text-sm"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-warm-border text-warm-muted hover:bg-warm-bg-2 transition-colors disabled:opacity-50 text-sm"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />}
           Save as draft
@@ -231,10 +243,10 @@ export default function PostEditor({ post }: PostEditorProps) {
           type="button"
           onClick={e => { setPublished(true); handleSubmit(e, true) }}
           disabled={submitting}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#c2621a] text-white hover:bg-[#9a4e15] transition-colors disabled:opacity-50 text-sm"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-warm-accent text-white hover:bg-warm-accent-dark transition-colors disabled:opacity-50 text-sm"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
-          {post?.published ? 'Save & publish' : 'Publish post'}
+          {submitting ? submitStatus : (post?.published ? 'Save & publish' : 'Publish post')}
         </button>
       </div>
     </form>
