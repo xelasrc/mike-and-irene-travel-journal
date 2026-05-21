@@ -74,9 +74,13 @@ export default async function PostPage({ params }: PageProps) {
 
   const paragraphs = post.content.split('\n').filter((p: string) => p.trim())
 
+  const navUser = currentProfile
+    ? { displayName: currentProfile.display_name, isAdmin: currentProfile.role === 'admin' }
+    : null
+
   return (
     <>
-      <Navbar />
+      <Navbar user={navUser} />
       <main className="max-w-2xl mx-auto px-4 pb-20">
         {/* Back link */}
         <div className="py-5">

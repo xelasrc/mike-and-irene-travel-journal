@@ -3,32 +3,46 @@ import { MapPin, BookOpen, LogIn } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import NavbarUserMenu from './NavbarUserMenu'
 
-export default async function Navbar() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+interface NavbarProps {
+  // Optional: pass pre-fetched auth data from the page to avoid a duplicate DB call
+  user?: { displayName: string; isAdmin: boolean } | null
+}
 
+export default async function Navbar({ user: prefetched }: NavbarProps = {}) {
   let displayName = 'User'
   let isAdmin = false
+  let isLoggedIn = false
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('display_name, role')
-      .eq('id', user.id)
-      .single()
+  if (prefetched !== undefined) {
+    // Page already fetched auth — reuse it
+    isLoggedIn = prefetched !== null
+    displayName = prefetched?.displayName ?? 'User'
+    isAdmin = prefetched?.isAdmin ?? false
+  } else {
+    // Fetch ourselves (used on pages that don't pass auth down)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    isLoggedIn = !!user
 
-    isAdmin = profile?.role === 'admin'
-    displayName =
-      profile?.display_name ??
-      user.user_metadata?.display_name ??
-      user.email?.split('@')[0] ??
-      'User'
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, role')
+        .eq('id', user.id)
+        .single()
+
+      isAdmin = profile?.role === 'admin'
+      displayName =
+        profile?.display_name ??
+        user.user_metadata?.display_name ??
+        user.email?.split('@')[0] ??
+        'User'
+    }
   }
 
   return (
     <header className="sticky top-0 z-40 border-b border-warm-border bg-warm-bg/95 backdrop-blur-sm">
       <nav className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* Logo */}
         <Link
           href="/"
           className="flex items-center gap-2 text-warm-accent hover:text-warm-accent-dark transition-colors"
@@ -42,7 +56,6 @@ export default async function Navbar() {
           </span>
         </Link>
 
-        {/* Right side */}
         <div className="flex items-center gap-3">
           {isAdmin && (
             <Link
@@ -54,7 +67,7 @@ export default async function Navbar() {
             </Link>
           )}
 
-          {user ? (
+          {isLoggedIn ? (
             <NavbarUserMenu displayName={displayName} isAdmin={isAdmin} />
           ) : (
             <Link
