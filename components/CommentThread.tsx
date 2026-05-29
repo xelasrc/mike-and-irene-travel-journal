@@ -1,26 +1,39 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { MessageCircle, Reply, Trash2, Loader2 } from 'lucide-react'
 import { createComment, deleteComment } from '@/app/actions/comments'
 import { buildCommentTree, formatRelativeDate } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 import type { Comment, CommentWithReplies, Profile } from '@/lib/types'
 
 interface CommentThreadProps {
   initialComments: Comment[]
   postId: string
   postSlug: string
-  currentUser: Pick<Profile, 'id' | 'display_name' | 'role'> | null
 }
 
 export default function CommentThread({
   initialComments,
   postId,
   postSlug,
-  currentUser,
 }: CommentThreadProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<Pick<Profile, 'id' | 'display_name' | 'role'> | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, display_name, role')
+        .eq('id', user.id)
+        .single()
+      if (data) setCurrentUser(data)
+    })
+  }, [])
 
   const tree = buildCommentTree(comments)
 

@@ -1,27 +1,41 @@
 import { notFound } from 'next/navigation'
 import { MapPin, Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Navbar from '@/components/Navbar'
 import PhotoGallery from '@/components/PhotoGallery'
 import CommentThread from '@/components/CommentThread'
 import { formatDate } from '@/lib/utils'
 
-export const dynamic = 'force-dynamic'
+// Pre-render at deploy, revalidate every 60s in background — served from CDN
+export const revalidate = 60
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+function getSupabase() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+export async function generateStaticParams() {
+  const { data } = await getSupabase()
+    .from('posts')
+    .select('slug')
+    .eq('published', true)
+  return (data ?? []).map(p => ({ slug: p.slug }))
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('posts')
     .select('title, excerpt')
     .eq('slug', slug)
     .single()
-
   return {
     title: data?.title ?? 'Post not found',
     description: data?.excerpt,
@@ -30,43 +44,31 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = getSupabase()
 
-  // Round trip 1 & 2 in parallel: fetch the post + auth session simultaneously
-  const [{ data: post }, { data: { user } }] = await Promise.all([
-    supabase
-      .from('posts')
-      .select(`
-        *,
-        profiles!author_id ( display_name ),
-        post_images ( id, image_url, caption, display_order )
-      `)
-      .eq('slug', slug)
-      .eq('published', true)
-      .single(),
-    supabase.auth.getUser(),
-  ])
+  // Fetch post (no cookies needed — content is publicly readable)
+  const { data: post } = await supabase
+    .from('posts')
+    .select(`
+      *,
+      profiles!author_id ( display_name ),
+      post_images ( id, image_url, caption, display_order )
+    `)
+    .eq('slug', slug)
+    .eq('published', true)
+    .single()
 
   if (!post) notFound()
 
-  // Round trip 3 & 4 in parallel: comments + current user's profile simultaneously
-  const [{ data: comments }, { data: currentProfile }] = await Promise.all([
-    supabase
-      .from('comments')
-      .select(`
-        id, post_id, author_id, parent_id, content, created_at,
-        profiles!author_id ( display_name, role )
-      `)
-      .eq('post_id', post.id)
-      .order('created_at', { ascending: true }),
-    user
-      ? supabase
-          .from('profiles')
-          .select('id, display_name, role')
-          .eq('id', user.id)
-          .single()
-      : Promise.resolve({ data: null }),
-  ])
+  // Fetch comments in parallel with nothing else to wait for
+  const { data: comments } = await supabase
+    .from('comments')
+    .select(`
+      id, post_id, author_id, parent_id, content, created_at,
+      profiles!author_id ( display_name, role )
+    `)
+    .eq('post_id', post.id)
+    .order('created_at', { ascending: true })
 
   const sortedImages = (post.post_images ?? []).sort(
     (a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order
@@ -74,15 +76,10 @@ export default async function PostPage({ params }: PageProps) {
 
   const paragraphs = post.content.split('\n').filter((p: string) => p.trim())
 
-  const navUser = currentProfile
-    ? { displayName: currentProfile.display_name, isAdmin: currentProfile.role === 'admin' }
-    : null
-
   return (
     <>
-      <Navbar user={navUser} />
+      <Navbar />
       <main className="max-w-2xl mx-auto px-4 pb-20">
-        {/* Back link */}
         <div className="py-5">
           <Link
             href="/"
@@ -94,7 +91,6 @@ export default async function PostPage({ params }: PageProps) {
         </div>
 
         <article>
-          {/* Meta */}
           <div className="flex flex-wrap items-center gap-3 text-sm text-warm-muted mb-3">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
@@ -111,26 +107,22 @@ export default async function PostPage({ params }: PageProps) {
             </span>
           </div>
 
-          {/* Title */}
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-warm-text leading-tight mb-8">
             {post.title}
           </h1>
 
-          {/* Content */}
           <div className="post-content mb-10">
             {paragraphs.map((para: string, i: number) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
-          {/* Photo gallery — edge-to-edge on mobile, rounded on desktop */}
           {sortedImages.length > 0 && (
             <div className="mb-10 -mx-4 sm:mx-0">
               <PhotoGallery images={sortedImages} />
             </div>
           )}
 
-          {/* Comments */}
           <CommentThread
             initialComments={(comments ?? []).map((c: any) => ({
               ...c,
@@ -138,7 +130,6 @@ export default async function PostPage({ params }: PageProps) {
             }))}
             postId={post.id}
             postSlug={post.slug}
-            currentUser={currentProfile}
           />
         </article>
       </main>

@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar'
 import PostCard from '@/components/PostCard'
 import { MapPin } from 'lucide-react'
 
+// Served from Vercel's CDN, revalidated every 60s in the background
 export const revalidate = 60
 
 export default async function HomePage() {
@@ -28,7 +29,6 @@ export default async function HomePage() {
     <>
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 pb-16">
-        {/* Hero */}
         <div className="text-center py-10 sm:py-16">
           <div className="inline-flex items-center gap-1.5 text-warm-accent text-xs font-medium mb-3 bg-warm-highlight px-3 py-1 rounded-full border border-warm-border">
             <MapPin className="w-3 h-3" />
@@ -43,7 +43,6 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* Post feed */}
         {postsWithCount.length === 0 ? (
           <div className="text-center py-16 text-warm-muted">
             <p className="font-serif text-xl mb-2">No posts yet</p>
