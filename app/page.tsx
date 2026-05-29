@@ -1,13 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/PostCard'
 import { MapPin } from 'lucide-react'
 
-// Served from Vercel's CDN, revalidated every 60s in the background
+// No cookies needed — posts are public. True ISR: served from CDN, revalidated every 60s.
 export const revalidate = 60
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const { data: posts } = await supabase
     .from('posts')
