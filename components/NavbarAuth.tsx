@@ -17,26 +17,31 @@ export default function NavbarAuth() {
   useEffect(() => {
     const supabase = createClient()
 
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setAuth({ status: 'guest' }); return }
-
+    async function loadProfile(userId: string, email?: string) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('display_name, role')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single()
-
       setAuth({
         status: 'user',
-        displayName: profile?.display_name ?? user.email?.split('@')[0] ?? 'User',
+        displayName: profile?.display_name ?? email?.split('@')[0] ?? 'User',
         isAdmin: profile?.role === 'admin',
       })
     }
 
-    load()
+    // getSession reads from cookies — no network round-trip, resolves instantly
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { setAuth({ status: 'guest' }); return }
+      loadProfile(session.user.id, session.user.email)
+    })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load())
+    // session is passed directly — no second getUser() call, no race condition
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) { setAuth({ status: 'guest' }); return }
+      loadProfile(session.user.id, session.user.email)
+    })
+
     return () => subscription.unsubscribe()
   }, [])
 
