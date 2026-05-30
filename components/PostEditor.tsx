@@ -185,7 +185,7 @@ export default function PostEditor({ post }: PostEditorProps) {
         {images.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
             {images.map((img, i) => (
-              <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden bg-[#faf3e8] group">
+              <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden bg-[#faf3e8]">
                 <Image
                   src={img.url}
                   alt={`Photo ${i + 1}`}
@@ -201,9 +201,10 @@ export default function PostEditor({ post }: PostEditorProps) {
                 <button
                   type="button"
                   onClick={() => removeImage(img.id)}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
+                  aria-label="Remove photo"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
@@ -213,7 +214,7 @@ export default function PostEditor({ post }: PostEditorProps) {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-[#e8d5be] text-[#8b6e5a] hover:border-[#c2621a] hover:text-[#c2621a] transition-colors w-full justify-center"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-warm-border text-warm-muted hover:border-warm-accent hover:text-warm-accent transition-colors w-full justify-center"
         >
           <ImagePlus className="w-5 h-5" />
           <span className="text-sm">Add photos</span>
@@ -229,7 +230,7 @@ export default function PostEditor({ post }: PostEditorProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-[#e8d5be]">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-warm-border">
         <button
           type="button"
           onClick={e => { setPublished(false); handleSubmit(e, false) }}
