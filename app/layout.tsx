@@ -28,6 +28,14 @@ export const metadata: Metadata = {
     apple: '/favicon/apple-touch-icon.png',
   },
   manifest: '/favicon/site.webmanifest',
+  openGraph: {
+    title: "Mike & Irene's Travel Blog",
+    description: 'Follow Mike and Irene on their travels.',
+    url: 'https://mikeandirene.vercel.app',
+    siteName: "Mike & Irene's Travel Blog",
+    images: [{ url: 'https://mikeandirene.vercel.app/og-image.jpg', width: 1516, height: 757 }],
+    type: 'website',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
