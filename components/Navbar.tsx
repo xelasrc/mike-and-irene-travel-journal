@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MapPin } from 'lucide-react'
+import Image from 'next/image'
 import NavbarAuth from './NavbarAuth'
 
 export default function Navbar() {
@@ -10,7 +10,7 @@ export default function Navbar() {
           href="/"
           className="flex items-center gap-2 text-warm-accent hover:text-warm-accent-dark transition-colors"
         >
-          <MapPin className="w-4 h-4" />
+          <Image src="/favicon/apple-touch-icon.png" alt="" width={28} height={28} className="rounded-md" />
           <span className="font-serif font-semibold text-lg leading-none hidden sm:block">
             Mike & Irene&apos;s Travel Blog
           </span>
