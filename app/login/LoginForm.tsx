@@ -70,12 +70,15 @@ export default function LoginForm() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-warm-muted mt-5">
-          No account?{' '}
-          <Link href="/register" className="text-warm-accent font-medium hover:underline">
-            Create one
+        <div className="mt-4 rounded-2xl border border-warm-border bg-white p-4 text-center">
+          <p className="text-sm text-warm-muted mb-3">New here? Join to leave comments.</p>
+          <Link
+            href="/register"
+            className="block w-full rounded-full border border-warm-accent text-warm-accent py-2.5 text-sm font-medium hover:bg-warm-accent hover:text-white transition-colors"
+          >
+            Create an account
           </Link>
-        </p>
+        </div>
         <p className="text-center text-sm text-warm-muted mt-2">
           <Link href="/" className="text-warm-muted hover:text-warm-accent transition-colors">
             ← Back to posts

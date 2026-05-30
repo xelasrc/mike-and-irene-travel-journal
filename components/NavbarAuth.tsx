@@ -51,13 +51,21 @@ export default function NavbarAuth() {
 
   if (auth.status === 'guest') {
     return (
-      <Link
-        href="/login"
-        className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-warm-accent text-white hover:bg-warm-accent-dark transition-colors"
-      >
-        <LogIn className="w-4 h-4" />
-        <span>Sign in</span>
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/register"
+          className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-warm-accent text-white hover:bg-warm-accent-dark transition-colors"
+        >
+          Join
+        </Link>
+        <Link
+          href="/login"
+          className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border border-warm-border text-warm-text hover:border-warm-accent hover:text-warm-accent transition-colors"
+        >
+          <LogIn className="w-4 h-4" />
+          <span className="hidden sm:inline">Sign in</span>
+        </Link>
+      </div>
     )
   }
 
