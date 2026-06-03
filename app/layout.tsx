@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: 'Follow Mike and Irene on their travels.',
     url: 'https://mikeandirene.vercel.app',
     siteName: "Mike & Irene's Travel Blog",
-    images: [{ url: 'https://mikeandirene.vercel.app/og-image.jpg', width: 1516, height: 757 }],
+    images: [{ url: 'https://mikeandirene.vercel.app/og-image-small.jpg', width: 900, height: 450 }],
     type: 'website',
   },
 }
