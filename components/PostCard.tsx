@@ -10,21 +10,22 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   return (
-    <article className="bg-white rounded-2xl border border-warm-border overflow-hidden shadow-sm active:scale-[0.99] transition-transform">
+    <article className="relative bg-white rounded-2xl border border-warm-border overflow-hidden shadow-sm active:scale-[0.99] transition-transform">
+      {/* Entire card is clickable */}
+      <Link href={`/posts/${post.slug}`} className="absolute inset-0 z-0" aria-label={post.title} />
+
       {/* Cover image */}
       {post.cover_image_url && (
-        <Link href={`/posts/${post.slug}`}>
-          <div className="relative h-56 sm:h-64 overflow-hidden">
-            <Image
-              src={post.cover_image_url}
-              alt={post.title}
-              fill
-              sizes="(max-width: 640px) 100vw, 700px"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
-          </div>
-        </Link>
+        <div className="relative h-56 sm:h-64 overflow-hidden">
+          <Image
+            src={post.cover_image_url}
+            alt={post.title}
+            fill
+            sizes="(max-width: 640px) 100vw, 700px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
+        </div>
       )}
 
       <div className="p-4 sm:p-6">
@@ -43,11 +44,9 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
 
         {/* Title */}
-        <Link href={`/posts/${post.slug}`}>
-          <h2 className="font-serif text-xl sm:text-2xl font-semibold text-warm-text mb-2 leading-snug">
-            {post.title}
-          </h2>
-        </Link>
+        <h2 className="font-serif text-xl sm:text-2xl font-semibold text-warm-text mb-2 leading-snug">
+          {post.title}
+        </h2>
 
         {/* Excerpt */}
         {post.excerpt && (
@@ -57,7 +56,7 @@ export default function PostCard({ post }: PostCardProps) {
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-warm-border">
+        <div className="relative z-10 flex items-center justify-between pt-3 border-t border-warm-border">
           <span className="text-xs text-warm-muted">
             by {post.profiles?.display_name ?? 'Mike'}
           </span>
