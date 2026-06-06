@@ -53,8 +53,8 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
-            {postsWithCount.map(post => (
-              <PostCard key={post.id} post={post as any} />
+            {postsWithCount.map((post, i) => (
+              <PostCard key={post.id} post={post as any} isFirst={i === 0} />
             ))}
           </div>
         )}

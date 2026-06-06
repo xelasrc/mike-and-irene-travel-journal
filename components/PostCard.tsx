@@ -6,13 +6,14 @@ import type { Post } from '@/lib/types'
 
 interface PostCardProps {
   post: Post & { comment_count: number }
+  isFirst?: boolean
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, isFirst }: PostCardProps) {
   return (
     <article className="relative bg-white rounded-2xl border border-warm-border overflow-hidden shadow-sm active:scale-[0.99] transition-transform">
-      {/* Entire card is clickable */}
-      <Link href={`/posts/${post.slug}`} className="absolute inset-0 z-0" aria-label={post.title} />
+      {/* Entire card is clickable — sits above the cover image in stacking order */}
+      <Link href={`/posts/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title} />
 
       {/* Cover image */}
       {post.cover_image_url && (
@@ -23,6 +24,7 @@ export default function PostCard({ post }: PostCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, 700px"
             className="object-cover"
+            loading={isFirst ? 'eager' : 'lazy'}
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
         </div>
@@ -56,13 +58,13 @@ export default function PostCard({ post }: PostCardProps) {
         )}
 
         {/* Footer */}
-        <div className="relative z-10 flex items-center justify-between pt-3 border-t border-warm-border">
+        <div className="relative z-20 flex items-center justify-between pt-3 border-t border-warm-border pointer-events-none">
           <span className="text-xs text-warm-muted">
             by {post.profiles?.display_name ?? 'Mike'}
           </span>
           <Link
             href={`/posts/${post.slug}#comments`}
-            className="flex items-center gap-1.5 text-sm text-warm-muted hover:text-warm-accent transition-colors py-1"
+            className="relative z-10 flex items-center gap-1.5 text-sm text-warm-muted hover:text-warm-accent transition-colors py-1 pointer-events-auto"
           >
             <MessageCircle className="w-4 h-4" />
             <span>{post.comment_count} {post.comment_count === 1 ? 'comment' : 'comments'}</span>
