@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { ImagePlus, X, Loader2, Globe, EyeOff, GripVertical } from 'lucide-react'
+import { ImagePlus, X, Loader2, Globe, EyeOff, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createPost, updatePost } from '@/app/actions/posts'
 import { compressImage } from '@/lib/compressImage'
@@ -24,13 +24,17 @@ export default function PostEditor({ post }: PostEditorProps) {
   const [location, setLocation] = useState(post?.location ?? '')
   const [content, setContent] = useState(post?.content ?? '')
   const [published, setPublished] = useState(post?.published ?? false)
+  const sortedExisting = post?.post_images
+    ? [...post.post_images].sort((a, b) => a.display_order - b.display_order)
+    : []
   const [images, setImages] = useState<ImageEntry[]>(
-    post?.post_images
-      ? [...post.post_images]
-          .sort((a, b) => a.display_order - b.display_order)
-          .map(img => ({ id: img.id, url: img.image_url }))
-      : []
+    sortedExisting.map(img => ({ id: img.id, url: img.image_url }))
   )
+  const [coverIndex, setCoverIndex] = useState(() => {
+    if (!post?.cover_image_url || sortedExisting.length === 0) return 0
+    const idx = sortedExisting.findIndex(img => img.image_url === post.cover_image_url)
+    return idx >= 0 ? idx : 0
+  })
   const [submitting, setSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +53,16 @@ export default function PostEditor({ post }: PostEditorProps) {
   }
 
   function removeImage(id: string) {
-    setImages(prev => prev.filter(img => img.id !== id))
+    setImages(prev => {
+      const idx = prev.findIndex(img => img.id === id)
+      const next = prev.filter(img => img.id !== id)
+      setCoverIndex(old => {
+        if (idx < old) return old - 1
+        if (idx === old) return 0
+        return old
+      })
+      return next
+    })
   }
 
   async function uploadPendingImages(): Promise<string[]> {
@@ -96,7 +109,11 @@ export default function PostEditor({ post }: PostEditorProps) {
     setError(null)
 
     try {
-      const imageUrls = await uploadPendingImages()
+      const uploaded = await uploadPendingImages()
+      // Move selected cover to index 0 so actions treat it as cover
+      const imageUrls = uploaded.length > 0
+        ? [uploaded[coverIndex] ?? uploaded[0], ...uploaded.filter((_, i) => i !== coverIndex)]
+        : uploaded
       const isPublished = publishOverride ?? published
 
       if (post) {
@@ -178,36 +195,47 @@ export default function PostEditor({ post }: PostEditorProps) {
       <div>
         <label className="block text-sm font-medium text-[#2d1b0e] mb-1.5">
           Photos
-          <span className="text-[#8b6e5a] font-normal ml-1.5">— first photo becomes the cover</span>
+          <span className="text-[#8b6e5a] font-normal ml-1.5">— tap a photo to set as cover</span>
         </label>
 
         {/* Image previews */}
         {images.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
-            {images.map((img, i) => (
-              <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden bg-[#faf3e8]">
-                <Image
-                  src={img.url}
-                  alt={`Photo ${i + 1}`}
-                  fill
-                  sizes="150px"
-                  className="object-cover"
-                />
-                {i === 0 && (
-                  <span className="absolute top-1 left-1 text-xs bg-[#c2621a] text-white px-1.5 py-0.5 rounded-full leading-none">
-                    Cover
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removeImage(img.id)}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
-                  aria-label="Remove photo"
+            {images.map((img, i) => {
+              const isCover = i === coverIndex
+              return (
+                <div
+                  key={img.id}
+                  onClick={() => setCoverIndex(i)}
+                  className={`relative aspect-square rounded-lg overflow-hidden bg-warm-bg-2 cursor-pointer ring-2 transition-all ${isCover ? 'ring-warm-accent' : 'ring-transparent hover:ring-warm-border'}`}
                 >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+                  <Image
+                    src={img.url}
+                    alt={`Photo ${i + 1}`}
+                    fill
+                    sizes="150px"
+                    className="object-cover"
+                  />
+                  {isCover ? (
+                    <span className="absolute top-1 left-1 flex items-center gap-1 text-xs bg-warm-accent text-white px-1.5 py-0.5 rounded-full leading-none">
+                      <Star className="w-2.5 h-2.5" /> Cover
+                    </span>
+                  ) : (
+                    <span className="absolute top-1 left-1 text-xs bg-black/40 text-white px-1.5 py-0.5 rounded-full leading-none opacity-0 hover:opacity-100 transition-opacity">
+                      Set cover
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={e => { e.stopPropagation(); removeImage(img.id) }}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
+                    aria-label="Remove photo"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -247,7 +275,7 @@ export default function PostEditor({ post }: PostEditorProps) {
           className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-warm-accent text-white hover:bg-warm-accent-dark transition-colors disabled:opacity-50 text-sm"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
-          {submitting ? submitStatus : (post?.published ? 'Save & publish' : 'Publish post')}
+          {submitting ? submitStatus : (post ? 'Save changes' : 'Publish post')}
         </button>
       </div>
     </form>
