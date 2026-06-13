@@ -140,11 +140,6 @@ function CommentNode({
               <span className="font-semibold text-sm text-warm-text">
                 {comment.profiles?.display_name ?? 'Anonymous'}
               </span>
-              {comment.profiles?.role === 'admin' && (
-                <span className="text-xs bg-warm-accent text-white px-1.5 py-0.5 rounded-full leading-none">
-                  Mike & Irene
-                </span>
-              )}
               <span className="text-xs text-warm-muted">
                 {formatRelativeDate(comment.created_at)}
               </span>
