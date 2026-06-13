@@ -26,9 +26,10 @@ export async function createPost(data: {
   content: string
   published: boolean
   imageUrls: string[]
+  coverPosition: string
 }) {
   const { supabase, user } = await assertAdmin()
-  const { title, location, content, published, imageUrls } = data
+  const { title, location, content, published, imageUrls, coverPosition } = data
 
   const slug = generateSlug(title)
   const excerpt = generateExcerpt(content)
@@ -43,6 +44,7 @@ export async function createPost(data: {
       content,
       excerpt,
       cover_image_url: coverImageUrl,
+      cover_position: coverPosition,
       author_id: user.id,
       published,
     })
@@ -77,9 +79,10 @@ export async function updatePost(data: {
   published: boolean
   imageUrls: string[]
   existingSlug: string
+  coverPosition: string
 }) {
   const { supabase } = await assertAdmin()
-  const { postId, title, location, content, published, imageUrls, existingSlug } = data
+  const { postId, title, location, content, published, imageUrls, existingSlug, coverPosition } = data
 
   const excerpt = generateExcerpt(content)
   const coverImageUrl = imageUrls[0] ?? null
@@ -92,6 +95,7 @@ export async function updatePost(data: {
       content,
       excerpt,
       cover_image_url: coverImageUrl,
+      cover_position: coverPosition,
       published,
       updated_at: new Date().toISOString(),
     })

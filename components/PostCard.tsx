@@ -25,6 +25,7 @@ export default function PostCard({ post, isFirst }: PostCardProps) {
             sizes="(max-width: 640px) 100vw, 700px"
             className="object-cover"
             loading={isFirst ? 'eager' : 'lazy'}
+            style={{ objectPosition: post.cover_position ?? '50% 50%' }}
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
         </div>

@@ -15,7 +15,7 @@ export default async function HomePage() {
   const { data: posts } = await supabase
     .from('posts')
     .select(`
-      id, slug, title, excerpt, location, cover_image_url, created_at, published, author_id,
+      id, slug, title, excerpt, location, cover_image_url, cover_position, created_at, published, author_id,
       profiles!author_id ( display_name ),
       comments ( count )
     `)

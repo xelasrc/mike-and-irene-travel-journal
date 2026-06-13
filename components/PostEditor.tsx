@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { ImagePlus, X, Loader2, Globe, EyeOff, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,130 @@ interface ImageEntry {
   uploading?: boolean
 }
 
+const CARD_RATIO = 672 / 224 // PostCard width:height ≈ 3
+
+function BoundingBoxPicker({ src, value, onChange }: {
+  src: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [pickerW, setPickerW] = useState(0)
+  const [imgNatural, setImgNatural] = useState<{ w: number; h: number } | null>(null)
+  const dragging = useRef(false)
+  const dragStart = useRef({ mouseX: 0, mouseY: 0, boxX: 0, boxY: 0 })
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
+  const [xPct, yPct] = value.split(' ').map(s => parseFloat(s))
+
+  function computeLayout() {
+    if (!imgNatural || pickerW === 0) return null
+    const imgRatio = imgNatural.w / imgNatural.h
+    const pickerH = pickerW / imgRatio
+    let boxW: number, boxH: number, maxX: number, maxY: number
+    if (imgRatio >= CARD_RATIO) {
+      // Image wider than card → horizontal crop
+      boxH = pickerH
+      boxW = pickerH * CARD_RATIO
+      maxX = pickerW - boxW
+      maxY = 0
+    } else {
+      // Image taller than card → vertical crop
+      boxW = pickerW
+      boxH = pickerW / CARD_RATIO
+      maxX = 0
+      maxY = pickerH - boxH
+    }
+    const boxX = (xPct / 100) * maxX
+    const boxY = (yPct / 100) * maxY
+    return { pickerH, boxW, boxH, boxX, boxY, maxX, maxY }
+  }
+
+  const layout = computeLayout()
+  const layoutRef = useRef(layout)
+  layoutRef.current = layout
+
+  useEffect(() => {
+    function onMove(e: MouseEvent | TouchEvent) {
+      if (!dragging.current || !layoutRef.current) return
+      e.preventDefault()
+      const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX
+      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY
+      const { maxX, maxY } = layoutRef.current
+      const newX = Math.min(maxX, Math.max(0, dragStart.current.boxX + clientX - dragStart.current.mouseX))
+      const newY = Math.min(maxY, Math.max(0, dragStart.current.boxY + clientY - dragStart.current.mouseY))
+      const xp = maxX > 0 ? Math.round((newX / maxX) * 100) : 50
+      const yp = maxY > 0 ? Math.round((newY / maxY) * 100) : 50
+      onChangeRef.current(`${xp}% ${yp}%`)
+    }
+    function onUp() { dragging.current = false }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onUp)
+    }
+  }, [])
+
+  function startDrag(e: React.MouseEvent | React.TouchEvent) {
+    e.preventDefault()
+    if (!layoutRef.current) return
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    dragging.current = true
+    dragStart.current = { mouseX: clientX, mouseY: clientY, boxX: layoutRef.current.boxX, boxY: layoutRef.current.boxY }
+  }
+
+  return (
+    <div className="mb-3 rounded-xl border border-warm-border overflow-hidden">
+      <div className="px-3 py-2 bg-warm-bg-2 border-b border-warm-border">
+        <p className="text-xs font-medium text-warm-text">Cover framing</p>
+        <p className="text-xs text-warm-muted">Drag the box to choose what shows in the card</p>
+      </div>
+      <div
+        ref={containerRef}
+        className="relative select-none overflow-hidden bg-black"
+        style={{ height: layout?.pickerH ?? 180 }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt=""
+          className="w-full block"
+          style={{ height: layout?.pickerH ?? 'auto', objectFit: 'fill' }}
+          onLoad={e => {
+            const img = e.currentTarget
+            setImgNatural({ w: img.naturalWidth, h: img.naturalHeight })
+            if (containerRef.current) setPickerW(containerRef.current.offsetWidth)
+          }}
+          draggable={false}
+        />
+        {layout && (
+          <div
+            className="absolute cursor-grab active:cursor-grabbing touch-none"
+            style={{
+              left: layout.boxX,
+              top: layout.boxY,
+              width: layout.boxW,
+              height: layout.boxH,
+              boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
+              border: '2px solid white',
+              outline: '1px solid rgba(255,255,255,0.3)',
+            }}
+            onMouseDown={startDrag}
+            onTouchStart={startDrag}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function PostEditor({ post }: PostEditorProps) {
   const [title, setTitle] = useState(post?.title ?? '')
   const [location, setLocation] = useState(post?.location ?? '')
@@ -35,6 +159,7 @@ export default function PostEditor({ post }: PostEditorProps) {
     const idx = sortedExisting.findIndex(img => img.image_url === post.cover_image_url)
     return idx >= 0 ? idx : 0
   })
+  const [coverPosition, setCoverPosition] = useState(post?.cover_position ?? '50% 50%')
   const [submitting, setSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -125,6 +250,7 @@ export default function PostEditor({ post }: PostEditorProps) {
           published: isPublished,
           imageUrls,
           existingSlug: post.slug,
+          coverPosition,
         })
       } else {
         await createPost({
@@ -133,6 +259,7 @@ export default function PostEditor({ post }: PostEditorProps) {
           content: content.trim(),
           published: isPublished,
           imageUrls,
+          coverPosition,
         })
       }
     } catch (err) {
@@ -237,6 +364,15 @@ export default function PostEditor({ post }: PostEditorProps) {
               )
             })}
           </div>
+        )}
+
+        {/* Cover framing */}
+        {images.length > 0 && (
+          <BoundingBoxPicker
+            src={images[coverIndex]?.url}
+            value={coverPosition}
+            onChange={setCoverPosition}
+          />
         )}
 
         <button

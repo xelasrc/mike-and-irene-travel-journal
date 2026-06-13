@@ -15,6 +15,7 @@ export interface Post {
   excerpt: string | null
   location: string | null
   cover_image_url: string | null
+  cover_position: string | null
   author_id: string
   published: boolean
   created_at: string
