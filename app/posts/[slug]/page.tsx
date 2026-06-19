@@ -134,8 +134,15 @@ export default async function PostPage({ params }: PageProps) {
         </article>
       </main>
 
-      <footer className="border-t border-warm-border text-center py-6 text-sm text-warm-muted">
-        Made with love for Mike & Irene ♥
+      <footer className="border-t border-warm-border text-center py-8 text-sm text-warm-muted">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 bg-warm-accent text-white px-6 py-3 rounded-full font-medium hover:bg-warm-accent-dark transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to feed
+        </Link>
+        <p className="mt-3">Made with love for Mike & Irene ♥</p>
       </footer>
     </>
   )
