@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { ImagePlus, X, Loader2, Globe, EyeOff, Star } from 'lucide-react'
+import { ImagePlus, X, Loader2, Globe, EyeOff, Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createPost, updatePost } from '@/app/actions/posts'
 import { compressImage } from '@/lib/compressImage'
@@ -190,6 +190,21 @@ export default function PostEditor({ post }: PostEditorProps) {
     })
   }
 
+  function moveImage(idx: number, dir: -1 | 1) {
+    const newIdx = idx + dir
+    setImages(prev => {
+      if (newIdx < 0 || newIdx >= prev.length) return prev
+      const next = [...prev]
+      ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
+      return next
+    })
+    setCoverIndex(old => {
+      if (old === idx) return newIdx
+      if (old === newIdx) return idx
+      return old
+    })
+  }
+
   async function uploadPendingImages(): Promise<string[]> {
     const pending = images.filter(e => e.file)
     const urls: string[] = []
@@ -322,7 +337,7 @@ export default function PostEditor({ post }: PostEditorProps) {
       <div>
         <label className="block text-sm font-medium text-[#2d1b0e] mb-1.5">
           Photos
-          <span className="text-[#8b6e5a] font-normal ml-1.5">— tap a photo to set as cover</span>
+          <span className="text-[#8b6e5a] font-normal ml-1.5">— tap to set cover, arrows to reorder</span>
         </label>
 
         {/* Image previews */}
@@ -360,6 +375,27 @@ export default function PostEditor({ post }: PostEditorProps) {
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
+                  {/* Reorder arrows */}
+                  <div className="absolute bottom-1 left-1 right-1 flex justify-between">
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); moveImage(i, -1) }}
+                      disabled={i === 0}
+                      className="bg-black/60 text-white rounded-full p-0.5 disabled:opacity-20"
+                      aria-label="Move left"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); moveImage(i, 1) }}
+                      disabled={i === images.length - 1}
+                      className="bg-black/60 text-white rounded-full p-0.5 disabled:opacity-20"
+                      aria-label="Move right"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )
             })}
