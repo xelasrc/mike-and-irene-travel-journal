@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/PostCard'
-import TravelMap from '@/components/TravelMap'
-import { MapPin } from 'lucide-react'
+import TravelMapWrapper from '@/components/TravelMapWrapper'
 
 // No cookies needed — posts are public. True ISR: served from CDN, revalidated every 60s.
 export const revalidate = 60
@@ -40,10 +39,6 @@ export default async function HomePage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 pb-16">
         <div className="text-center py-10 sm:py-16">
-          <div className="inline-flex items-center gap-1.5 text-warm-accent text-xs font-medium mb-3 bg-warm-highlight px-3 py-1 rounded-full border border-warm-border">
-            <MapPin className="w-3 h-3" />
-            Live travel journal
-          </div>
           <h1 className="font-serif text-3xl sm:text-5xl font-bold text-warm-text leading-tight mb-3">
             Mike & Irene&apos;s<br />
             <span className="text-warm-accent">Travel Blog</span>
@@ -54,7 +49,7 @@ export default async function HomePage() {
         </div>
 
         {ping && (
-          <TravelMap
+          <TravelMapWrapper
             lat={ping.lat}
             lng={ping.lng}
             city={ping.city}

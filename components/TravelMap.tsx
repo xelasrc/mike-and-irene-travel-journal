@@ -1,7 +1,22 @@
 'use client'
 
+import { useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { MapPin } from 'lucide-react'
 import { formatRelativeDate } from '@/lib/utils'
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+// Fix default marker icons broken by webpack
+const icon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
 
 interface TravelMapProps {
   lat: number
@@ -12,9 +27,10 @@ interface TravelMapProps {
 }
 
 export default function TravelMap({ lat, lng, city, country, updatedAt }: TravelMapProps) {
-  const pad = 0.08
-  const bbox = `${lng - pad}%2C${lat - pad}%2C${lng + pad}%2C${lat + pad}`
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`
+  useEffect(() => {
+    // Ensure Leaflet uses the correct icon on mount
+    L.Marker.prototype.options.icon = icon
+  }, [])
 
   return (
     <div className="bg-white rounded-2xl border border-warm-border overflow-hidden shadow-sm mb-6">
@@ -29,15 +45,21 @@ export default function TravelMap({ lat, lng, city, country, updatedAt }: Travel
           {formatRelativeDate(updatedAt)}
         </span>
       </div>
-      <div className="h-52 sm:h-64">
-        <iframe
-          src={src}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          title="Mike & Irene's current location"
+      <MapContainer
+        center={[lat, lng]}
+        zoom={11}
+        scrollWheelZoom={false}
+        style={{ height: 220, width: '100%' }}
+        attributionControl={true}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
         />
-      </div>
+        <Marker position={[lat, lng]} icon={icon}>
+          <Popup>{city}, {country}</Popup>
+        </Marker>
+      </MapContainer>
     </div>
   )
 }
