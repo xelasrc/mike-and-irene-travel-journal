@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/PostCard'
-import TravelMapWrapper from '@/components/TravelMapWrapper'
 
 // No cookies needed — posts are public. True ISR: served from CDN, revalidated every 60s.
 export const revalidate = 60
@@ -11,12 +10,6 @@ export default async function HomePage() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-
-  const { data: ping } = await supabase
-    .from('travel_ping')
-    .select('lat, lng, city, country, updated_at')
-    .eq('id', 1)
-    .single()
 
   const { data: posts } = await supabase
     .from('posts')
@@ -47,16 +40,6 @@ export default async function HomePage() {
             A private journal for friends and family — follow along on the adventure.
           </p>
         </div>
-
-        {ping && (
-          <TravelMapWrapper
-            lat={ping.lat}
-            lng={ping.lng}
-            city={ping.city}
-            country={ping.country}
-            updatedAt={ping.updated_at}
-          />
-        )}
 
         {postsWithCount.length === 0 ? (
           <div className="text-center py-16 text-warm-muted">
